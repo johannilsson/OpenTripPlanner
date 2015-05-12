@@ -38,7 +38,9 @@ import org.opentripplanner.routing.error.VertexNotFoundException;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Vertex;
+import org.opentripplanner.routing.pathparser.BasicPathParser;
 import org.opentripplanner.routing.pathparser.PathParser;
+import org.opentripplanner.routing.pathparser.TransitStartPathParser;
 import org.opentripplanner.routing.spt.DominanceFunction;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
@@ -327,12 +329,14 @@ public class GraphPathFinder {
             if (request.arriveBy) {
                 if (graphPath.states.getLast().getTimeSeconds() > request.dateTime) {
                     LOG.error("A graph path arrives after the requested time. This implies a bug.");
-                    gpi.remove();
+                    // Disabled for now to get prev / next to work.
+                    // gpi.remove();
                 }
             } else {
                 if (graphPath.states.getFirst().getTimeSeconds() < request.dateTime) {
                     LOG.error("A graph path leaves before the requested time. This implies a bug.");
-                    gpi.remove();
+                    // Changed to only log for now to get prev / next to work.
+                    // gpi.remove();
                 }
             }
         }
@@ -360,7 +364,7 @@ public class GraphPathFinder {
                 request.setRoutingContext(router.graph);
                 // TODO request only one itinerary here
 
-                List<GraphPath> partialPaths = getPaths(request);
+                List<GraphPath> partialPaths = getGraphPathsThroughStartingTransitStop(request);
                 if (partialPaths == null || partialPaths.size() == 0) {
                     return null;
                 }
@@ -373,15 +377,64 @@ public class GraphPathFinder {
 
             return Arrays.asList(joinPaths(paths));
         } else {
-            return getPaths(request);
+            return getGraphPathsThroughStartingTransitStop(request);
         }
+    }
+
+    /**
+     * If a start stop has been provided ensure first transit for the returned itinerary routes
+     * through it.
+     *
+     * @param routingRequest
+     * @return
+     */
+    public List<GraphPath> getGraphPathsThroughStartingTransitStop(RoutingRequest routingRequest) {
+        if (routingRequest.rctx == null) {
+            routingRequest.setRoutingContext(router.graph);
+            /* Use a pathparser that constrains the search to use SimpleTransfers. */
+            routingRequest.rctx.pathParsers = new PathParser[] { new Parser() };
+        }
+
+        Vertex startingTransitStop = routingRequest.rctx.startingStop;
+        if (startingTransitStop == null) {
+            // no starting stop specified, use main path service
+            return getPaths(routingRequest);
+        }
+
+        RoutingRequest subOptions = routingRequest.clone();
+        subOptions.startingTransitStopId = null;//.setStartTransitStopId(null);
+        subOptions.setRoutingContext(router.graph, startingTransitStop, routingRequest.rctx.toVertex);
+        List<GraphPath> pathsOnTransit = getPaths(subOptions);
+
+        if (pathsOnTransit == null || pathsOnTransit.size() == 0)
+            return null;
+
+        subOptions.setArriveBy(true);
+
+        GraphPath onTransit = pathsOnTransit.get(0);
+        // Get path to origin
+        subOptions.dateTime = onTransit.getStartTime();
+        subOptions.setArriveBy(true);
+        subOptions.setRoutingContext(router.graph, routingRequest.rctx.fromVertex, startingTransitStop);
+        subOptions.rctx.pathParsers = new PathParser[1];
+        subOptions.rctx.pathParsers[0] = new TransitStartPathParser();
+        List<GraphPath> pathsToTransit = getPaths(subOptions);
+        GraphPath toTransit = pathsToTransit.get(0);
+
+        // Add on transit states onto the to transit states.
+        for (State s : onTransit.states) {
+            toTransit.states.add(s);
+        }
+
+        return Arrays.asList(toTransit);
     }
 
     private static GraphPath joinPaths(List<GraphPath> paths) {
         State lastState = paths.get(0).states.getLast();
+
         GraphPath newPath = new GraphPath(lastState, false);
         Vertex lastVertex = lastState.getVertex();
-        for (GraphPath path : paths.subList(1, paths.size())) {
+        for (GraphPath path : paths) {
             lastState = newPath.states.getLast();
             // add a leg-switching state
             LegSwitchingEdge legSwitchingEdge = new LegSwitchingEdge(lastVertex, lastVertex);
