@@ -54,7 +54,7 @@ will do the job. Place this PBF file in the same directory you created for the O
 ## Start up OTP
 
 As a Java program OTP must be run under a Java virtual machine (JVM), which is provided as part of the Java runtime
-(JRE) or Java development kit (JDK). Run `java -version` to check that you have version 1.7 or newer of the JVM installed.
+(JRE) or Java development kit (JDK). Run `java -version` to check that you have version 1.8 or newer of the JVM installed.
 If you do not you will need to install a recent OpenJDK or Oracle Java package for your operating system.
 
 GTFS and OSM data sets are often very large, and OTP is relatively memory-hungry. You will need at least 1GB of memory
@@ -71,7 +71,7 @@ For simplicity we'll skip saving this file and start up an OTP server immediatel
 
 where `/home/username/otp` should be the directory where you put your input files. The graph build operation should
 take about one minute to complete, and then you'll see a `Grizzly server running` message. At this point you can open
-[http://localhost:8080/](http://localhost:8080/) in a web browser. You should be presented with a web client that will
+[http://localhost:8080/](http://localhost:8080/) in a web browser. Remember to use the `--analyst` flag to start the program if you wish to use the Analyst extension. You should be presented with a web client that will
 interact with your local OpenTripPlanner instance. You can also try out some web service URLs to explore the transit data:
 
 - [A list of all routers](http://localhost:8080/otp/routers/default/)
