@@ -7,7 +7,7 @@ import org.opentripplanner.routing.graph.Graph;
  * OTP will treat this as an authoritative statement on where the transit stop is located within the street network,
  * and the GTFS stop vertex will be linked to exactly this location.
  */
-public class TransitStopStreetVertex extends IntersectionVertex {
+public class TransitStopStreetVertex extends OsmVertex {
 
     public String stopCode;
 
