@@ -1,8 +1,31 @@
 # Changelog
 
-## 0.17.0-SNAPSHOT
+## 0.19.0-SNAPSHOT
 
 - next release, work in progress on master branch
+
+## 0.18.0 (2015-05-29)
+
+- Ability to load elevation from projected GeoTIFF
+- Clarified axis order for unprojected GeoTIFFs
+- Stop viewer and car distance fixed in client
+- Server-side localization improvements
+- Proper names for intersections
+- JSON config for loading bikeshare and park and ride lots from OSM
+- More ways to fetch isochrones
+- Fixed frequency-based routing in repeated RAPTOR
+- Calculate graph envelope at build time not runtime
+- Fixed slow excessive HashGrid search
+- Readthedocs documentation updates
+
+## 0.17.0 (2015-05-14)
+
+- Allow fetching arrivals/departures over a particular time window
+- Completely new spatial analysis implementation: repeated RAPTOR search at every minute in a departure time window
+- More reproducible spatial analysis results across similar graphs, thanks to more consistent splitting of streets etc.
+- Sigmoidal accessibility metric rolloff (rather than hard-edged cutoff)
+- Correction of equirectangular projection used in spatial analysis
+- Improved, simplified, deterministic linking of stops into the street network
 
 ## 0.16.0 (2015-05-07)
 
