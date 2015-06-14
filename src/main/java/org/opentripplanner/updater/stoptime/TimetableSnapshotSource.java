@@ -376,7 +376,7 @@ public class TimetableSnapshotSource {
         
         // Check whether trip id already exists in graph
         String tripId = tripDescriptor.getTripId();
-        Trip trip = getTripForTripId(tripId);
+        Trip trip = graphIndex.getTripForTripId(tripId);
         if (trip != null) {
             // TODO: should we support this and add a new instantiation of this trip (making it
             // frequency based)?
@@ -452,7 +452,7 @@ public class TimetableSnapshotSource {
             // Find stops
             if (stopTimeUpdate.hasStopId()) {
                 // Find stop
-                Stop stop = getStopForStopId(stopTimeUpdate.getStopId());
+                Stop stop = graphIndex.getStopForStopId(stopTimeUpdate.getStopId());
                 if (stop != null) {
                     // Remember stop
                     stops.add(stop);
@@ -562,7 +562,7 @@ public class TimetableSnapshotSource {
         Route route = null;
         if (tripUpdate.getTrip().hasRouteId()) {
             // Try to find route
-            route = getRouteForRouteId(tripUpdate.getTrip().getRouteId());
+            route = graphIndex.getRouteForRouteId(tripUpdate.getTrip().getRouteId());
         }
         
         if (route == null) {
@@ -807,7 +807,7 @@ public class TimetableSnapshotSource {
         
         // Check whether trip id already exists in graph
         String tripId = tripDescriptor.getTripId();
-        Trip trip = getTripForTripId(tripId);
+        Trip trip = graphIndex.getTripForTripId(tripId);
         if (trip == null) {
             // TODO: should we support this and consider it an ADDED trip?
             LOG.warn("Graph does not contain trip id of MODIFIED trip, skipping.");
@@ -919,80 +919,9 @@ public class TimetableSnapshotSource {
     }
 
     private TripPattern getPatternForTripId(String tripIdWithoutAgency) {
-        Trip trip = getTripForTripId(tripIdWithoutAgency);
+        Trip trip = graphIndex.getTripForTripId(tripIdWithoutAgency);
         TripPattern pattern = graphIndex.patternForTrip.get(trip);
         return pattern;
     }
 
-    /**
-     * Retrieve route given a route id without an agency
-     * 
-     * @param routeId route id without the agency
-     * @return route or null if route can't be found in graph index
-     */
-    private Route getRouteForRouteId(String routeId) {
-        /* Lazy-initialize a separate index that ignores agency IDs.
-         * Stopgap measure assuming no cross-feed ID conflicts, until we get GTFS loader replaced. */
-        if (graphIndex.routeForIdWithoutAgency == null) {
-            Map<String, Route> map = Maps.newHashMap();
-            for (Route route : graphIndex.routeForId.values()) {
-                Route previousValue = map.put(route.getId().getId(), route);
-                if (previousValue != null) {
-                    LOG.warn("Duplicate route id detected when agency is ignored for "
-                            + "realtime updates: {}", route.getId().getId());
-                }
-            }
-            graphIndex.routeForIdWithoutAgency = map;
-        }
-        Route route = graphIndex.routeForIdWithoutAgency.get(routeId);
-        return route;
-    }
-    
-    /**
-     * Retrieve trip given a trip id without an agency
-     * 
-     * @param tripId trip id without the agency
-     * @return trip or null if trip can't be found in graph index
-     */
-    private Trip getTripForTripId(String tripId) {
-        /* Lazy-initialize a separate index that ignores agency IDs.
-         * Stopgap measure assuming no cross-feed ID conflicts, until we get GTFS loader replaced. */
-        if (graphIndex.tripForIdWithoutAgency == null) {
-            Map<String, Trip> map = Maps.newHashMap();
-            for (Trip trip : graphIndex.tripForId.values()) {
-                Trip previousValue = map.put(trip.getId().getId(), trip);
-                if (previousValue != null) {
-                    LOG.warn("Duplicate trip id detected when agency is ignored for realtime"
-                            + "updates: {}", trip.getId().getId());
-                }
-            }
-            graphIndex.tripForIdWithoutAgency = map;
-        }
-        Trip trip = graphIndex.tripForIdWithoutAgency.get(tripId);
-        return trip;
-    }
-
-    /**
-     * Retrieve stop given a stop id without an agency
-     * 
-     * @param stopId trip id without the agency
-     * @return stop or null if stop doesn't exist
-     */
-    private Stop getStopForStopId(String stopId) {
-        /* Lazy-initialize a separate index that ignores agency IDs.
-         * Stopgap measure assuming no cross-feed ID conflicts, until we get GTFS loader replaced. */
-        if (graphIndex.stopForIdWithoutAgency == null) {
-            Map<String, Stop> map = Maps.newHashMap();
-            for (Stop stop : graphIndex.stopForId.values()) {
-                Stop previousValue = map.put(stop.getId().getId(), stop);
-                if (previousValue != null) {
-                    LOG.warn("Duplicate stop id detected when agency is ignored for realtime updates: {}", stopId);
-                }
-            }
-            graphIndex.stopForIdWithoutAgency = map;
-        }
-        Stop stop = graphIndex.stopForIdWithoutAgency.get(stopId);
-        return stop;
-    }
-    
 }

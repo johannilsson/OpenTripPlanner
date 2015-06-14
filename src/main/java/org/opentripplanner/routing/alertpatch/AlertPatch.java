@@ -100,9 +100,9 @@ public class AlertPatch implements Serializable {
 
     public void apply(Graph graph) {
         Agency agency = this.agency != null ? graph.index.agencyForId.get(this.agency) : null;
-        Route route = this.route != null ? graph.index.routeForId.get(this.route) : null;
-        Stop stop = this.stop != null ? graph.index.stopForId.get(this.stop) : null;
-        Trip trip = this.trip != null ? graph.index.tripForId.get(this.trip) : null;
+        Route route = this.route != null ? graph.index.getRouteForRouteId(this.route.getId()) : null;
+        Stop stop = this.stop != null ? graph.index.getStopForStopId(this.stop.getId()) : null;
+        Trip trip = this.trip != null ? graph.index.getTripForTripId(this.trip.getId()) : null;
 
         if (route != null || trip != null || agency != null) {
             Collection<TripPattern> tripPatterns;

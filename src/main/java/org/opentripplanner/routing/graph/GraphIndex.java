@@ -501,4 +501,74 @@ public class GraphIndex {
 //        }
     }
 
+    /**
+     * Retrieve route given a route id without an agency
+     *
+     * @param routeId route id without the agency
+     * @return route or null if route can't be found in graph index
+     */
+    public Route getRouteForRouteId(String routeId) {
+        /* Lazy-initialize a separate index that ignores agency IDs.
+         * Stopgap measure assuming no cross-feed ID conflicts, until we get GTFS loader replaced. */
+        if (routeForIdWithoutAgency == null) {
+            Map<String, Route> map = Maps.newHashMap();
+            for (Route route : routeForId.values()) {
+                Route previousValue = map.put(route.getId().getId(), route);
+                if (previousValue != null) {
+                    LOG.warn("Duplicate route id detected when agency is ignored for "
+                            + "realtime updates: {}", route.getId().getId());
+                }
+            }
+            routeForIdWithoutAgency = map;
+        }
+        Route route = routeForIdWithoutAgency.get(routeId);
+        return route;
+    }
+
+    /**
+     * Retrieve trip given a trip id without an agency
+     *
+     * @param tripId trip id without the agency
+     * @return trip or null if trip can't be found in graph index
+     */
+    public Trip getTripForTripId(String tripId) {
+        /* Lazy-initialize a separate index that ignores agency IDs.
+         * Stopgap measure assuming no cross-feed ID conflicts, until we get GTFS loader replaced. */
+        if (tripForIdWithoutAgency == null) {
+            Map<String, Trip> map = Maps.newHashMap();
+            for (Trip trip : tripForId.values()) {
+                Trip previousValue = map.put(trip.getId().getId(), trip);
+                if (previousValue != null) {
+                    LOG.warn("Duplicate trip id detected when agency is ignored for realtime"
+                            + "updates: {}", trip.getId().getId());
+                }
+            }
+            tripForIdWithoutAgency = map;
+        }
+        Trip trip = tripForIdWithoutAgency.get(tripId);
+        return trip;
+    }
+
+    /**
+     * Retrieve stop given a stop id without an agency
+     *
+     * @param stopId trip id without the agency
+     * @return stop or null if stop doesn't exist
+     */
+    public Stop getStopForStopId(String stopId) {
+        /* Lazy-initialize a separate index that ignores agency IDs.
+         * Stopgap measure assuming no cross-feed ID conflicts, until we get GTFS loader replaced. */
+        if (stopForIdWithoutAgency == null) {
+            Map<String, Stop> map = Maps.newHashMap();
+            for (Stop stop : stopForId.values()) {
+                Stop previousValue = map.put(stop.getId().getId(), stop);
+                if (previousValue != null) {
+                    LOG.warn("Duplicate stop id detected when agency is ignored for realtime updates: {}", stopId);
+                }
+            }
+            stopForIdWithoutAgency = map;
+        }
+        Stop stop = stopForIdWithoutAgency.get(stopId);
+        return stop;
+    }
 }
