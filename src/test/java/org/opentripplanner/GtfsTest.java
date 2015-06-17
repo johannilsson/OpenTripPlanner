@@ -54,6 +54,7 @@ public abstract class GtfsTest extends TestCase {
     TimetableSnapshotSource timetableSnapshotSource;
     AlertPatchServiceImpl alertPatchServiceImpl;
     public Router router;
+    private String feedId;
 
     public abstract String getFeedName();
 
@@ -77,7 +78,8 @@ public abstract class GtfsTest extends TestCase {
         gtfsBundle.setTransfersTxtDefinesStationPaths(true);
         gtfsGraphBuilderImpl.buildGraph(graph, null);
         // Set the agency ID to be used for tests to the first one in the feed.
-        agencyId = graph.getAgencyIds().iterator().next();
+        feedId = graph.getFeedIds().iterator().next();
+        agencyId = graph.getAgencies(feedId).iterator().next().getId();
         System.out.printf("Set the agency ID for this test to %s\n", agencyId);
         graph.index(new DefaultStreetVertexIndexFactory());
         timetableSnapshotSource = new TimetableSnapshotSource(graph);
@@ -85,7 +87,7 @@ public abstract class GtfsTest extends TestCase {
         graph.timetableSnapshotSource = (timetableSnapshotSource);
         alertPatchServiceImpl = new AlertPatchServiceImpl(graph);
         alertsUpdateHandler.setAlertPatchService(alertPatchServiceImpl);
-        alertsUpdateHandler.setDefaultAgencyId("MMRI");
+        alertsUpdateHandler.setFeedId("MMRI");
 
         try {
             final boolean fullDataset = false;

@@ -103,7 +103,7 @@ public class GtfsModule implements GraphBuilderModule {
                 if (useCached != null && gtfsBundle.useCached == null)
                     gtfsBundle.useCached = useCached;
                 GtfsMutableRelationalDao dao = new GtfsRelationalDaoImpl();
-                GtfsContext context = GtfsLibrary.createContext(dao, service);
+                GtfsContext context = GtfsLibrary.createContext(gtfsBundle.getFeedId(), dao, service);
                 GTFSPatternHopFactory hf = new GTFSPatternHopFactory(context);
                 hf.setStopContext(stopContext);
                 hf.setFareServiceFactory(_fareServiceFactory);
@@ -159,7 +159,7 @@ public class GtfsModule implements GraphBuilderModule {
         reader.setInputSource(gtfsBundle.getCsvInputSource());
         reader.setEntityStore(store);
         reader.setInternStrings(true);
-        reader.setDefaultAgencyId(gtfsBundle.getFeedId());
+        reader.setDefaultAgencyId(gtfsBundle.getFeedId().getId());
 
         if (LOG.isDebugEnabled())
             reader.addEntityHandler(counter);

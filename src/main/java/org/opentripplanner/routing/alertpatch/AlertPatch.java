@@ -99,7 +99,8 @@ public class AlertPatch implements Serializable {
     }
 
     public void apply(Graph graph) {
-        Agency agency = this.agency != null ? graph.index.agencyForId.get(this.agency) : null;
+//        Agency agency = this.agency != null ? graph.index.agencyForId.get(this.agency) : null;
+        Agency agency = null;
         Route route = this.route != null ? graph.index.routeForId.get(this.route) : null;
         Stop stop = this.stop != null ? graph.index.stopForId.get(this.stop) : null;
         Trip trip = this.trip != null ? graph.index.tripForId.get(this.trip) : null;
@@ -153,7 +154,8 @@ public class AlertPatch implements Serializable {
     }
 
     public void remove(Graph graph) {
-        Agency agency = this.agency != null ? graph.index.agencyForId.get(this.agency) : null;
+//        Agency agency = this.agency != null ? graph.index.agencyForId.get(this.agency) : null;
+        Agency agency = null;
         Route route = this.route != null ? graph.index.routeForId.get(this.route) : null;
         Stop stop = this.stop != null ? graph.index.stopForId.get(this.stop) : null;
         Trip trip = this.trip != null ? graph.index.tripForId.get(this.trip) : null;

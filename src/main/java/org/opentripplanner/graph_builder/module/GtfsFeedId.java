@@ -11,16 +11,30 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-package org.opentripplanner.gtfs;
+package org.opentripplanner.graph_builder.module;
 
-import org.onebusaway.gtfs.services.GtfsRelationalDao;
-import org.onebusaway.gtfs.services.calendar.CalendarService;
-import org.opentripplanner.graph_builder.module.GtfsFeedId;
+import java.io.File;
 
-public interface GtfsContext {
-    public GtfsFeedId getFeedId();
+/**
+ * Created by johan on 17/06/15.
+ */
+public class GtfsFeedId {
+    private final String id;
 
-    public GtfsRelationalDao getDao();
+    public GtfsFeedId(String id) {
+        this.id = id;
+    }
 
-    public CalendarService getCalendarService();
+    public String getId() {
+        return id;
+    }
+
+    public static GtfsFeedId createFromFile(File path) {
+        String feedId = path.getName();
+        int pos = feedId.lastIndexOf('.');
+        if (pos > 0) {
+            feedId = feedId.substring(0, pos);
+        }
+        return new GtfsFeedId(feedId);
+    }
 }

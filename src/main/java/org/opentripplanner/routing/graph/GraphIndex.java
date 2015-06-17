@@ -38,12 +38,7 @@ import org.opentripplanner.routing.vertextype.TransitStop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class contains all the transient indexes of graph elements -- those that are not
@@ -57,7 +52,7 @@ public class GraphIndex {
 
     // TODO: consistently key on model object or id string
     public final Map<String, Vertex> vertexForId = Maps.newHashMap();
-    public final Map<String, Agency> agencyForId = Maps.newHashMap();
+    public final Map<String, Map<String, Agency>> agenciesForFeedId = Maps.newHashMap();
     public final Map<AgencyAndId, Stop> stopForId = Maps.newHashMap();
     public final Map<AgencyAndId, Trip> tripForId = Maps.newHashMap();
     public final Map<AgencyAndId, Route> routeForId = Maps.newHashMap();
@@ -65,6 +60,7 @@ public class GraphIndex {
     public final Map<String, TripPattern> patternForId = Maps.newHashMap();
     public final Map<Stop, TransitStop> stopVertexForStop = Maps.newHashMap();
     public final Map<Trip, TripPattern> patternForTrip = Maps.newHashMap();
+    // TODO: @johannilsson This is used by gtfs-rt alerts, needs to be modified to contain feed id.
     public final Multimap<Agency, TripPattern> patternsForAgency = ArrayListMultimap.create();
     public final Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
     public final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
@@ -100,9 +96,15 @@ public class GraphIndex {
 
     public GraphIndex (Graph graph) {
         LOG.info("Indexing graph...");
-        for (Agency a : graph.getAgencies()) {
-            agencyForId.put(a.getId(), a);
+
+        for (String feedId : graph.getFeedIds()) {
+            for (Agency agency : graph.getAgencies(feedId)) {
+                Map<String, Agency> agencyForId = agenciesForFeedId.getOrDefault(feedId, new HashMap<>());
+                agencyForId.put(agency.getId(), agency);
+                this.agenciesForFeedId.put(feedId, agencyForId);
+            }
         }
+
         Collection<Edge> edges = graph.getEdges();
         /* We will keep a separate set of all vertices in case some have the same label. 
          * Maybe we should just guarantee unique labels. */

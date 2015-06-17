@@ -25,6 +25,7 @@ import org.onebusaway.csv_entities.CsvInputSource;
 import org.onebusaway.csv_entities.FileCsvInputSource;
 import org.onebusaway.csv_entities.ZipFileCsvInputSource;
 import org.opentripplanner.graph_builder.module.DownloadableGtfsInputSource;
+import org.opentripplanner.graph_builder.module.GtfsFeedId;
 import org.opentripplanner.util.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class GtfsBundle {
 
     private URL url;
 
-    private String feedId;
+    private GtfsFeedId feedId;
 
     private CsvInputSource csvInputSource;
 
@@ -72,7 +73,7 @@ public class GtfsBundle {
     
     public GtfsBundle(File gtfsFile) {
         this.setPath(gtfsFile);
-        this.setFeedId(this.createFeedIdFromFile());
+        this.setFeedId(GtfsFeedId.createFromFile(gtfsFile));
     }
 
     public void setPath(File path) {
@@ -127,25 +128,12 @@ public class GtfsBundle {
     /**
      * So that we can load multiple gtfs feeds into the same database.
      */
-    public String getFeedId() {
+    public GtfsFeedId getFeedId() {
         return feedId;
     }
 
-    public void setFeedId(String feedId) {
+    public void setFeedId(GtfsFeedId feedId) {
         this.feedId = feedId;
-    }
-
-    /**
-     * Creates a feed id from file name for this gtfs bundle.
-     * @return
-     */
-    protected String createFeedIdFromFile() {
-        String feedId = this.path.getName();
-        int pos = feedId.lastIndexOf('.');
-        if (pos > 0) {
-            feedId = feedId.substring(0, pos);
-        }
-        return feedId;
     }
 
     public Map<String, String> getAgencyIdMappings() {
