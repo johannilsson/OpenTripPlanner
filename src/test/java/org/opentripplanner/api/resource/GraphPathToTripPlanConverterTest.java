@@ -656,7 +656,7 @@ public class GraphPathToTripPlanConverterTest {
         timetableSnapshotSource.getTimetableSnapshot().update(thirdTripPattern, updatedTripTimes, serviceDate);
 
         // Further graph initialization
-        String feedId = graph.getFeedIds().iterator().next();
+        String feedId = "FEED";
 
         graph.putService(CalendarServiceData.class, calendarServiceData);
         graph.putService(FareService.class, fareServiceStub);

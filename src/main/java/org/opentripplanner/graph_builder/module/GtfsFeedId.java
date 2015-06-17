@@ -22,7 +22,16 @@ public class GtfsFeedId {
     private final String id;
 
     public GtfsFeedId(String id) {
-        this.id = id;
+        this.id = cleanId(id);
+    }
+
+    /**
+     * Cleans the id before it is set. This method ensures that the id is a valid id.
+     * @param id The feed id
+     * @return The cleaned id.
+     */
+    protected String cleanId(String id) {
+        return id.replaceAll("_", "");
     }
 
     public String getId() {
