@@ -119,9 +119,9 @@ public class AlertPatch implements Serializable {
             Collection<TripPattern> tripPatterns = null;
 
             if (trip != null) {
-                tripPatterns = new LinkedList<TripPattern>();
+                tripPatterns = new LinkedList<>();
                 TripPattern tripPattern = graph.index.patternForTrip.get(trip);
-                if(tripPattern != null) {
+                if (tripPattern != null) {
                     tripPatterns.add(tripPattern);
                 }
             } else if (route != null) {
@@ -310,6 +310,10 @@ public class AlertPatch implements Serializable {
 
     public void setFeedId(String feedId) {
         this.feedId = feedId;
+    }
+
+    public boolean hasTrip() {
+        return trip != null;
     }
 
     public boolean equals(Object o) {
