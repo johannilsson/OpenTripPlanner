@@ -79,11 +79,6 @@ public class GraphIndex {
     public Multimap<StopCluster, ProfileTransfer> transfersFromStopCluster;
     private HashGridSpatialIndex<StopCluster> stopClusterSpatialIndex = null;
 
-    /* Extra indices for applying realtime updates (lazy-initialized). */
-    public Map<String, Route> routeForIdWithoutAgency = null;
-    public Map<String, Trip> tripForIdWithoutAgency = null;
-    public Map<String, Stop> stopForIdWithoutAgency = null;
-
     /* This is a workaround, and should probably eventually be removed. */
     public Graph graph;
 
@@ -145,8 +140,6 @@ public class GraphIndex {
             agencyPatternsForFeedId.put(feedId, patternsForAgency);
 
             patternsForRoute.put(pattern.route, pattern);
-
-            LOG.error("ROUTE --> " + pattern.route.getId());
 
             for (Trip trip : pattern.getTrips()) {
                 patternForTrip.put(trip, pattern);
