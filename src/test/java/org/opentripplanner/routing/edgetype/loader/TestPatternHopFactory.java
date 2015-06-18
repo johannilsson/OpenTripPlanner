@@ -330,18 +330,19 @@ public class TestPatternHopFactory extends TestCase {
         TransferTable transferTable = graph.getTransferTable();
         
         // create dummy routes and trips
+        // In tests we don't patch entities with the feed id, only default agency id is used.
         Route fromRoute = new Route();
-        fromRoute.setId(new AgencyAndId(feedId, "1"));
+        fromRoute.setId(new AgencyAndId("agency", "1"));
         Trip fromTrip = new Trip();
-        fromTrip.setId(new AgencyAndId(feedId, "1.1"));
+        fromTrip.setId(new AgencyAndId("agency", "1.1"));
         fromTrip.setRoute(fromRoute);
         Route toRoute = new Route();
-        toRoute.setId(new AgencyAndId(feedId, "2"));
+        toRoute.setId(new AgencyAndId("agency", "2"));
         Trip toTrip = new Trip();
-        toTrip.setId(new AgencyAndId(feedId, "2.1"));
+        toTrip.setId(new AgencyAndId("agency", "2.1"));
         toTrip.setRoute(toRoute);
         Trip toTrip2 = new Trip();
-        toTrip2.setId(new AgencyAndId(feedId, "2.2"));
+        toTrip2.setId(new AgencyAndId("agency", "2.2"));
         toTrip2.setRoute(toRoute);
         
         // find stops
