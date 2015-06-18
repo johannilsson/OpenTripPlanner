@@ -93,8 +93,6 @@ public class AlertsUpdateHandler {
         }
         for (EntitySelector informed : alert.getInformedEntityList()) {
             if (fuzzyTripMatcher != null && informed.hasTrip()) {
-                // TODO: @johannilsson This needs to be mapped to the feed id.
-                String agency = informed.hasAgencyId() ? informed.getAgencyId() : feedId;
                 TripDescriptor trip = fuzzyTripMatcher.match(feedId, informed.getTrip());
                 informed = informed.toBuilder().setTrip(trip).build();
             }
@@ -125,28 +123,22 @@ public class AlertsUpdateHandler {
             String agencyId = informed.getAgencyId();
             if (informed.hasAgencyId()) {
                 agencyId = informed.getAgencyId().intern();
-            } else {
-                agencyId = feedId;
-            }
-            if (agencyId == null) {
-                log.error("Empty agency id (and no default set) in feed; other ids are route "
-                        + routeId + " and stop " + stopId);
-                continue;
             }
 
             AlertPatch patch = new AlertPatch();
+            patch.setFeedId(feedId);
             if (routeId != null) {
-                patch.setRoute(new AgencyAndId(agencyId, routeId));
+                patch.setRoute(new AgencyAndId(feedId, routeId));
                 // Makes no sense to set direction if we don't have a route
                 if (direction != -1) {
                     patch.setDirectionId(direction);
                 }
             }
             if (tripId != null) {
-                patch.setTrip(new AgencyAndId(agencyId, tripId));
+                patch.setTrip(new AgencyAndId(feedId, tripId));
             }
             if (stopId != null) {
-                patch.setStop(new AgencyAndId(agencyId, stopId));
+                patch.setStop(new AgencyAndId(feedId, stopId));
             }
             if(agencyId != null && routeId == null && tripId == null && stopId == null) {
                 patch.setAgencyId(agencyId);

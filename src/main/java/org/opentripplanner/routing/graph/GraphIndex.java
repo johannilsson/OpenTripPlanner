@@ -60,8 +60,7 @@ public class GraphIndex {
     public final Map<String, TripPattern> patternForId = Maps.newHashMap();
     public final Map<Stop, TransitStop> stopVertexForStop = Maps.newHashMap();
     public final Map<Trip, TripPattern> patternForTrip = Maps.newHashMap();
-    // TODO: @johannilsson This is used by gtfs-rt alerts, needs to be modified to contain feed id.
-    public final Multimap<Agency, TripPattern> patternsForAgency = ArrayListMultimap.create();
+    public final Map<String, Multimap<Agency, TripPattern>> agencyPatternsForFeedId = Maps.newHashMap();
     public final Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
     public final Multimap<Stop, TripPattern> patternsForStop = ArrayListMultimap.create();
     public final Multimap<String, Stop> stopsForParentStation = ArrayListMultimap.create();
@@ -133,8 +132,22 @@ public class GraphIndex {
             stopSpatialIndex.insert(envelope, stopVertex);
         }
         for (TripPattern pattern : patternForId.values()) {
+            // The key stored in patternForId is the pattern code that is constructed as.
+            // Agency:RouteId:DirectionId:PatternNumber, the first part is the feed id.
+            String feedId = pattern.code.substring(0, pattern.code.indexOf(':'));
+            Multimap<Agency, TripPattern> patternsForAgency;
+            if (!agencyPatternsForFeedId.containsKey(feedId)) {
+                patternsForAgency = ArrayListMultimap.create();
+            } else {
+                patternsForAgency = agencyPatternsForFeedId.get(feedId);
+            }
             patternsForAgency.put(pattern.route.getAgency(), pattern);
+            agencyPatternsForFeedId.put(feedId, patternsForAgency);
+
             patternsForRoute.put(pattern.route, pattern);
+
+            LOG.error("ROUTE --> " + pattern.route.getId());
+
             for (Trip trip : pattern.getTrips()) {
                 patternForTrip.put(trip, pattern);
                 tripForId.put(trip.getId(), trip);
