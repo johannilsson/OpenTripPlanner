@@ -122,6 +122,9 @@ public class GtfsBundle {
         } else {
             src = "(no source)";
         }
+        if (feedId != null) {
+            src += " (" + feedId.getId() + ")";
+        }
         return "GTFS bundle at " + src;
     }
     
