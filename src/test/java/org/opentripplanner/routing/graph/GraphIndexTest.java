@@ -41,16 +41,13 @@ public class GraphIndexTest extends GtfsTest {
         }
 
         /* Agencies */
-
-        // TODO: @johannilsson Fix these!
-//        Agency agency;
-//        agency = graph.index.agencyForId.get("azerty");
-//        assertNull(agency);
-//        agency = graph.index.agencyForId.get("agency");
-//        assertEquals(agency.getId(), "agency");
-//        assertEquals(agency.getName(), "Fake Agency");
-
-
+        String feedId = graph.getFeedIds().iterator().next();
+        Agency agency;
+        agency = graph.index.agenciesForFeedId.get(feedId).get("azerty");
+        assertNull(agency);
+        agency = graph.index.agenciesForFeedId.get(feedId).get("agency");
+        assertEquals(agency.getId(), "agency");
+        assertEquals(agency.getName(), "Fake Agency");
 
         /* Stops */
         graph.index.stopForId.get(new AgencyAndId("X", "Y"));
@@ -82,9 +79,10 @@ public class GraphIndexTest extends GtfsTest {
     }
 
     public void testSpatialIndex() {
-        Stop stopJ = graph.index.stopForId.get(new AgencyAndId("agency", "J"));
-        Stop stopL = graph.index.stopForId.get(new AgencyAndId("agency", "L"));
-        Stop stopM = graph.index.stopForId.get(new AgencyAndId("agency", "M"));
+        String feedId = graph.getFeedIds().iterator().next();
+        Stop stopJ = graph.index.stopForId.get(new AgencyAndId(feedId, "J"));
+        Stop stopL = graph.index.stopForId.get(new AgencyAndId(feedId, "L"));
+        Stop stopM = graph.index.stopForId.get(new AgencyAndId(feedId, "M"));
         TransitStop stopvJ = graph.index.stopVertexForStop.get(stopJ);
         TransitStop stopvL = graph.index.stopVertexForStop.get(stopL);
         TransitStop stopvM = graph.index.stopVertexForStop.get(stopM);
