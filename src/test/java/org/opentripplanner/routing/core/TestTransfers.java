@@ -562,7 +562,7 @@ public class TestTransfers extends TestCase {
 
         // Now apply a real-time update: let the to-trip be early by 27600 seconds,
         // resulting in a transfer time of 0 seconds
-        Trip trip = graph.index.tripForId.get(new AgencyAndId(feedId, "4.2"));
+        Trip trip = graph.index.tripForId.get(new AgencyAndId("agency", "4.2"));
         TripPattern pattern = graph.index.patternForTrip.get(trip);
         applyUpdateToTripPattern(pattern, "4.2", "F", 1, 55200, 55200,
                 ScheduleRelationship.SCHEDULED, 0, serviceDate);
