@@ -27,11 +27,15 @@ public class GtfsFeedId {
 
     /**
      * Cleans the id before it is set. This method ensures that the id is a valid id.
+     *
      * @param id The feed id
      * @return The cleaned id.
      */
     protected String cleanId(String id) {
-        return id.replaceAll("_", "");
+        // 1. Underscore is used as an separator by OBA.
+        // 2. Colon is used as an separator in OTP.
+        return id.replaceAll("_", "")
+                .replaceAll(":", "");
     }
 
     public String getId() {
