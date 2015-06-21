@@ -14,10 +14,13 @@ public class AnalystClusterRequest implements Serializable {
 
 	/** The ID of the destinations pointset */
 	public String destinationPointsetId;
-	
+
+	/** The Analyst Cluster user that created this request */
+	public String userId;
+
 	/** The ID of the graph against which to calculate this request */
 	public String graphId;
-	
+
 	/** The job ID this is associated with */
 	public String jobId;
 
@@ -26,6 +29,9 @@ public class AnalystClusterRequest implements Serializable {
 
 	/** To where should the result be POSTed */
 	public String directOutputUrl;
+
+	/** A unique identifier for this request assigned by the queue/broker system. */
+	public int taskId;
 
 	/**
 	 * To what queue should the notification of the result be delivered?
