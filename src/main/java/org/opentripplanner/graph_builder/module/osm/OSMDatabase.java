@@ -677,7 +677,28 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
                 if (role.equals("inner")) {
                     innerWays.add(way);
                 } else if (role.equals("outer")) {
+                    // Copy all tags from the multipolygon to the outer way.
+                    String[] relationCopyTags = { "area", "highway", "name", "ref" };
+                    for (String tag : relationCopyTags) {
+                        if (relation.hasTag(tag) && !way.hasTag(tag)) {
+                            way.addTag(tag, relation.getTag(tag));
+                        }
+                    }
+
                     outerWays.add(way);
+
+                    // Treat all outer ways as single ways, this is a temporary fix to make multipolygon ways walkable.
+                    try {
+                        newArea(new Area(way, Arrays.asList(way), Collections.<OSMWay> emptyList(), nodesById));
+                    } catch (Area.AreaConstructionException e) {
+                        // this area cannot be constructed, but we already have all the
+                        // necessary nodes to construct it. So, something must be wrong with
+                        // the area; we'll mark it as processed so that we don't retry.
+                    } catch (IllegalArgumentException iae) {
+                        // This occurs when there are an invalid number of points in a LinearRing
+                        // Mark the ring as processed so we don't retry it.
+                    }
+                    processedAreas.add(way);
                 } else {
                     LOG.warn("Unexpected role " + role + " in multipolygon");
                 }
