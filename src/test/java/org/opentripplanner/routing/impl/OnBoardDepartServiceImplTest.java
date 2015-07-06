@@ -13,6 +13,16 @@
 
 package org.opentripplanner.routing.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.TimeZone;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.CoordinateSequenceFactory;
@@ -129,6 +139,7 @@ public class OnBoardDepartServiceImplTest {
         TripTimes tripTimes = new TripTimes(trip, stopTimes, new Deduplicator());
         StopPattern stopPattern = new StopPattern(stopTimes);
         TripPattern tripPattern = new TripPattern(route, stopPattern);
+        TripPattern.generateUniqueIds(Arrays.asList(tripPattern));
 
         when(depart.getTripPattern()).thenReturn(tripPattern);
         when(dwell.getTripPattern()).thenReturn(tripPattern);
@@ -225,6 +236,7 @@ public class OnBoardDepartServiceImplTest {
         TripTimes tripTimes = new TripTimes(trip, stopTimes, new Deduplicator());
         StopPattern stopPattern = new StopPattern(stopTimes);
         TripPattern tripPattern = new TripPattern(route, stopPattern);
+        TripPattern.generateUniqueIds(Arrays.asList(tripPattern));
 
         when(depart.getTripPattern()).thenReturn(tripPattern);
 
@@ -304,6 +316,7 @@ public class OnBoardDepartServiceImplTest {
         TripTimes tripTimes = new TripTimes(trip, stopTimes, new Deduplicator());
         StopPattern stopPattern = new StopPattern(stopTimes);
         TripPattern tripPattern = new TripPattern(route, stopPattern);
+        TripPattern.generateUniqueIds(Arrays.asList(tripPattern));
 
         when(depart.getTripPattern()).thenReturn(tripPattern);
         when(dwell.getTripPattern()).thenReturn(tripPattern);
