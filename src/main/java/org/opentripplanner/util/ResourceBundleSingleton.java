@@ -13,6 +13,7 @@
 
 package org.opentripplanner.util;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -52,11 +53,14 @@ public enum ResourceBundleSingleton {
             } else {
                 resourceBundle = ResourceBundle.getBundle("WayProperties", locale);
             }
-            String retval = resourceBundle.getString(key);
+            // Properties is assumed to use the ISO 8859-1 character encoding.
+            String retval = new String(resourceBundle.getString(key).getBytes("ISO-8859-1"), "UTF-8");
             //LOG.debug(String.format("Localized '%s' using '%s'", key, retval));
             return retval;
         } catch (MissingResourceException e) {
             //LOG.debug("Missing translation for key: " + key);
+            return key;
+        } catch (UnsupportedEncodingException e) {
             return key;
         }
     }
