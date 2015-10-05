@@ -16,40 +16,31 @@ package org.opentripplanner.routing.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onebusaway.gtfs.model.AgencyAndId;
-import static org.opentripplanner.routing.automata.Nonterminal.choice;
-import static org.opentripplanner.routing.automata.Nonterminal.optional;
-import static org.opentripplanner.routing.automata.Nonterminal.plus;
-import static org.opentripplanner.routing.automata.Nonterminal.seq;
-import static org.opentripplanner.routing.automata.Nonterminal.star;
-
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.routing.algorithm.AStar;
 import org.opentripplanner.routing.algorithm.strategies.EuclideanRemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.strategies.InterleavedBidirectionalHeuristic;
 import org.opentripplanner.routing.algorithm.strategies.RemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.strategies.TrivialRemainingWeightHeuristic;
-import org.opentripplanner.routing.automata.DFA;
-import org.opentripplanner.routing.automata.Nonterminal;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
-import org.opentripplanner.routing.edgetype.*;
+import org.opentripplanner.routing.edgetype.LegSwitchingEdge;
 import org.opentripplanner.routing.error.PathNotFoundException;
 import org.opentripplanner.routing.error.VertexNotFoundException;
 import org.opentripplanner.routing.graph.Edge;
-import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Vertex;
-import org.opentripplanner.routing.pathparser.BasicPathParser;
-import org.opentripplanner.routing.pathparser.PathParser;
-import org.opentripplanner.routing.pathparser.TransitStartPathParser;
 import org.opentripplanner.routing.spt.DominanceFunction;
 import org.opentripplanner.routing.spt.GraphPath;
-import org.opentripplanner.routing.spt.ShortestPathTree;
-import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.standalone.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class contains the logic for repeatedly building shortest path trees and accumulating paths through
@@ -103,8 +94,7 @@ public class GraphPathFinder {
         AStar aStar = new AStar();
         if (options.rctx == null) {
             options.setRoutingContext(router.graph);
-            /* Use a pathparser that constrains the search to use SimpleTransfers. */
-            options.rctx.pathParsers = new PathParser[] { new Parser() };
+            // The special long-distance heuristic should be sufficient to constrain the search to the right area.
         }
         // If this Router has a GraphVisualizer attached to it, set it as a callback for the AStar search
         if (router.graphVisualizer != null) {
@@ -112,7 +102,7 @@ public class GraphPathFinder {
             // options.disableRemainingWeightHeuristic = true; // DEBUG
         }
 
-        // without transit, we'd just just return multiple copies of the same on-street itinerary
+        // Without transit, we'd just just return multiple copies of the same on-street itinerary.
         if (!options.modes.isTransit()) {
             options.numItineraries = 1;
         }
@@ -159,28 +149,30 @@ public class GraphPathFinder {
             timeout -= System.currentTimeMillis(); // absolute to relative
             timeout /= 1000; // msec to seconds
             if (timeout <= 0) {
-                // must catch this case where advancing to the next (lower) timeout value means the search is timed out
-                // before it even begins, because a negative relative timeout will mean "no timeout" in the SPT call.
+                // Catch the case where advancing to the next (lower) timeout value means the search is timed out
+                // before it even begins. Passing a negative relative timeout in the SPT call would mean "no timeout".
                 options.rctx.aborted = true;
                 break;
             }
-            ShortestPathTree spt = aStar.getShortestPathTree(options, timeout);
-            if (spt == null) {
-                LOG.warn("SPT was null."); // unknown failure
-                return null;
-            }
+            aStar.getShortestPathTree(options, timeout);
             if (options.rctx.aborted) {
-                break; // search timed out or was gracefully aborted for some other reason.
+                break; // Search timed out or was gracefully aborted for some other reason.
             }
-            List<GraphPath> newPaths = spt.getPaths();
+            // Don't dig through the SPT object, just ask the A star algorithm for the states that reached the target.
+            List<GraphPath> newPaths = aStar.getPathsToTarget();
             if (newPaths.isEmpty()) {
                 break;
             }
             // Find all trips used in this path and ban them for the remaining searches
             for (GraphPath path : newPaths) {
-                for (State state : path.states) {
-                    AgencyAndId tripId = state.getTripId();
-                    if (tripId != null) options.banTrip(tripId);
+                // path.dump();
+                List<AgencyAndId> tripIds = path.getTrips();
+                for (AgencyAndId tripId : tripIds) {
+                    options.banTrip(tripId);
+                }
+                if (tripIds.isEmpty()) {
+                    // This path does not use transit (is entirely on-street). Do not repeatedly find the same one.
+                    options.onlyTransitTrips = true;
                 }
             }
             paths.addAll(newPaths);
@@ -191,107 +183,6 @@ public class GraphPathFinder {
         ArrayList<GraphPath> pathsList = new ArrayList<GraphPath>(paths);
         Collections.sort(pathsList, new PathWeightComparator());
         return pathsList;
-    }
-
-    /* TODO eliminate the need for pathparsers. They are theoretically efficient but arcane and problematic. */
-
-    public static class Parser extends PathParser {
-
-        static final int STREET       = 1;
-        static final int LINK         = 2;
-        static final int STATION      = 3;
-        static final int ONBOARD      = 4;
-        static final int TRANSFER     = 5;
-        static final int STATION_STOP = 6;
-        static final int STOP_STATION = 7;
-
-        private static final DFA DFA;
-
-        static {
-
-            /* A StreetLeg is one or more street edges. */
-            Nonterminal streetLeg = plus(STREET);
-
-            /* A TransitLeg is a ride on transit, including preboard and prealight edges at its 
-             * ends. It begins and ends at a TransitStop vertex. 
-             * Note that these are STATION* rather than STATION+ because some transfer edges
-             * (timed transfer edges) connect arrival and depart vertices. Requiring a STATION
-             * edge would prevent them from being traversed. */
-            Nonterminal transitLeg = seq(star(STATION), plus(ONBOARD), star(STATION));
-            
-            /* A beginning gets us from the path's initial vertex to the first transit stop it 
-             * passes through (its first board location). We may want to transfer at the beginning 
-             * of an itinerary that begins at a station or stop, and does not use streets. */
-            Nonterminal beginning = choice(seq(optional(streetLeg), LINK), seq(optional(STATION_STOP), optional(TRANSFER)));
-            
-            /* Begin on board transit, ending up at another stop where the "middle" can take over. */
-            Nonterminal onboardBeginning = seq(plus(ONBOARD), plus(STATION), optional(TRANSFER));
-            
-            /* Ride transit at least one time, chaining transit legs together with single transfer edges. */
-            Nonterminal middle = seq(transitLeg, star(optional(TRANSFER), transitLeg));
-
-            /* And end gets us from the last stop to the final vertex. It is the same as a beginning, 
-             * but with the sub-sequences reversed. This must cover 6 different cases: 
-             * 1. leave the station and optionally walk, 
-             * 2. stay at the stop where we are, 
-             * 3. stay at the stop where we are but go to its parent station, 
-             * 4. transfer and stay at the target stop, 
-             * 5. transfer and move to the target stop's parent station. */
-            Nonterminal end = choice(seq(LINK, optional(streetLeg)), seq(optional(TRANSFER), optional(STOP_STATION)));
-
-            /* An itinerary that includes a ride on public transit. It might begin on- or offboard. 
-             * if it begins onboard, it doesn't necessarily have subsequent transit legs. */
-            Nonterminal transitItinerary = choice( 
-                    seq(beginning, middle, end),
-                    seq(onboardBeginning, optional(middle), end));
-            
-            /* A streets-only itinerary, which might begin or end at a stop or its station, 
-             * but does not actually ride transit. */
-            Nonterminal streetItinerary = choice(TRANSFER, seq(
-                    optional(STATION_STOP), optional(LINK), 
-                    streetLeg,
-                    optional(LINK), optional(STOP_STATION)));
-            
-            Nonterminal itinerary = choice(streetItinerary, transitItinerary);
-            
-            DFA = itinerary.toDFA().minimize();
-            // System.out.println(DFA.toGraphViz());
-            // System.out.println(DFA.dumpTable());
-        }
-
-        @Override
-        protected DFA getDFA() {
-            return DFA;
-        }
-
-        /**
-         * The terminal is normally based exclusively on the backEdge, i.e. each terminal represents
-         * exactly one edge in the path. In case of @link{StationStopEdge}, however, the type of the
-         * current vertex also determines what kind of terminal this is.
-         */
-        @Override
-        public int terminalFor(State state) {
-            Edge e = state.getBackEdge();
-            if (e == null) {
-                throw new RuntimeException ("terminalFor should never be called on States without back edges!");
-            }
-            /* OnboardEdge currently includes BoardAlight edges. */
-            if (e instanceof OnboardEdge)       return ONBOARD;
-            if (e instanceof StationEdge)       return STATION;
-            if (e instanceof StationStopEdge) {
-                return state.getVertex() instanceof TransitStop ? STATION_STOP : STOP_STATION;
-            }
-            // There should perhaps be a shared superclass of all transfer edges to simplify this. 
-            if (e instanceof SimpleTransfer)    return TRANSFER;
-            if (e instanceof TransferEdge)      return TRANSFER;
-            if (e instanceof TimedTransferEdge) return TRANSFER;
-            if (e instanceof StreetTransitLink) return LINK;
-            if (e instanceof IntersectionTransitLink) return LINK;
-            if (e instanceof PathwayEdge)       return LINK;
-            // Is it really correct to clasify all other edges as STREET?
-            return STREET;
-        }
-
     }
 
     /* Try to find N paths through the Graph */
@@ -332,14 +223,12 @@ public class GraphPathFinder {
             if (request.arriveBy) {
                 if (graphPath.states.getLast().getTimeSeconds() > request.dateTime) {
                     LOG.error("A graph path arrives after the requested time. This implies a bug.");
-                    // Disabled for now to get prev / next to work.
-                    // gpi.remove();
+                    gpi.remove();
                 }
             } else {
                 if (graphPath.states.getFirst().getTimeSeconds() < request.dateTime) {
                     LOG.error("A graph path leaves before the requested time. This implies a bug.");
-                    // Changed to only log for now to get prev / next to work.
-                    // gpi.remove();
+                    gpi.remove();
                 }
             }
         }
@@ -367,7 +256,7 @@ public class GraphPathFinder {
                 request.setRoutingContext(router.graph);
                 // TODO request only one itinerary here
 
-                List<GraphPath> partialPaths = getGraphPathsThroughStartingTransitStop(request);
+                List<GraphPath> partialPaths = getPaths(request);
                 if (partialPaths == null || partialPaths.size() == 0) {
                     return null;
                 }
@@ -380,61 +269,12 @@ public class GraphPathFinder {
 
             return Arrays.asList(joinPaths(paths));
         } else {
-            return getGraphPathsThroughStartingTransitStop(request);
+            return getPaths(request);
         }
-    }
-
-    /**
-     * If a start stop has been provided ensure first transit for the returned itinerary routes
-     * through it.
-     *
-     * @param routingRequest
-     * @return
-     */
-    public List<GraphPath> getGraphPathsThroughStartingTransitStop(RoutingRequest routingRequest) {
-        if (routingRequest.rctx == null) {
-            routingRequest.setRoutingContext(router.graph);
-            /* Use a pathparser that constrains the search to use SimpleTransfers. */
-            routingRequest.rctx.pathParsers = new PathParser[] { new Parser() };
-        }
-
-        Vertex startingTransitStop = routingRequest.rctx.startingStop;
-        if (startingTransitStop == null) {
-            // no starting stop specified, use main path service
-            return getPaths(routingRequest);
-        }
-
-        RoutingRequest subOptions = routingRequest.clone();
-        subOptions.startingTransitStopId = null;//.setStartTransitStopId(null);
-        subOptions.setRoutingContext(router.graph, startingTransitStop, routingRequest.rctx.toVertex);
-        List<GraphPath> pathsOnTransit = getPaths(subOptions);
-
-        if (pathsOnTransit == null || pathsOnTransit.size() == 0)
-            return null;
-
-        subOptions.setArriveBy(true);
-
-        GraphPath onTransit = pathsOnTransit.get(0);
-        // Get path to origin
-        subOptions.dateTime = onTransit.getStartTime();
-        subOptions.setArriveBy(true);
-        subOptions.setRoutingContext(router.graph, routingRequest.rctx.fromVertex, startingTransitStop);
-        subOptions.rctx.pathParsers = new PathParser[1];
-        subOptions.rctx.pathParsers[0] = new TransitStartPathParser();
-        List<GraphPath> pathsToTransit = getPaths(subOptions);
-        GraphPath toTransit = pathsToTransit.get(0);
-
-        // Add on transit states onto the to transit states.
-        for (State s : onTransit.states) {
-            toTransit.states.add(s);
-        }
-
-        return Arrays.asList(toTransit);
     }
 
     private static GraphPath joinPaths(List<GraphPath> paths) {
         State lastState = paths.get(0).states.getLast();
-
         GraphPath newPath = new GraphPath(lastState, false);
         Vertex lastVertex = lastState.getVertex();
         for (GraphPath path : paths.subList(1, paths.size())) {
