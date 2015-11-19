@@ -181,7 +181,7 @@ public class GraphPathFinder {
         LOG.debug("END SEARCH ({} msec)", System.currentTimeMillis() - searchBeginTime);
         
         ArrayList<GraphPath> pathsList = new ArrayList<GraphPath>(paths);
-        Collections.sort(pathsList, new PathWeightComparator());
+        Collections.sort(pathsList, new PathComparator(options.arriveBy));
         return pathsList;
     }
 
