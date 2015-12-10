@@ -1033,16 +1033,22 @@ public class RoutingRequest implements Cloneable, Serializable {
      * @return The time it actually takes to board a vehicle. Could be significant eg. on airplanes and ferries
      */
     public int getBoardTime(TraverseMode transitMode) {
-        Integer i = this.rctx.graph.boardTimes.get(transitMode);
-        return i == null ? 0 : i;
+        if (this.rctx.graph.boardTimes != null) {
+            Integer i = this.rctx.graph.boardTimes.get(transitMode);
+            return i == null ? 0 : i;
+        }
+        return 0;
     }
 
     /**
      * @return The time it actually takes to alight a vehicle. Could be significant eg. on airplanes and ferries
      */
     public int getAlightTime(TraverseMode transitMode) {
-        Integer i = this.rctx.graph.alightTimes.get(transitMode);
-        return i == null ? 0 : i;
+        if (this.rctx.graph.alightTimes != null) {
+            Integer i = this.rctx.graph.alightTimes.get(transitMode);
+            return i == null ? 0 : i;
+        }
+        return 0;
     }
 
     private String getRouteOrAgencyStr(HashSet<String> strings) {
