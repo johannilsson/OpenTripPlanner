@@ -53,11 +53,13 @@ public class TraverseModeSet implements Cloneable, Serializable {
 
     private static final int MODE_AIRPLANE = 4096;
 
+    private static final int MODE_TAXI = 8192;
+
     private static final int MODE_TRAINISH = MODE_TRAM | MODE_RAIL | MODE_SUBWAY | MODE_FUNICULAR | MODE_GONDOLA;
 
     private static final int MODE_BUSISH = MODE_CABLE_CAR | MODE_BUS;
 
-    private static final int MODE_TRANSIT = MODE_TRAINISH | MODE_BUSISH | MODE_FERRY | MODE_AIRPLANE;
+    private static final int MODE_TRANSIT = MODE_TRAINISH | MODE_BUSISH | MODE_FERRY | MODE_AIRPLANE | MODE_TAXI;
     
     private static final int MODE_ALL = MODE_TRANSIT | MODE_WALK | MODE_BICYCLE;
 
@@ -117,6 +119,8 @@ public class TraverseModeSet implements Cloneable, Serializable {
             return MODE_RAIL;
         case AIRPLANE:
             return MODE_AIRPLANE;
+        case TAXI:
+            return MODE_TAXI;
         case TRAINISH:
             return MODE_TRAINISH;
         case BUSISH:
@@ -198,6 +202,10 @@ public class TraverseModeSet implements Cloneable, Serializable {
 
     public boolean getAirplane() {
         return (modes & MODE_AIRPLANE) != 0;
+    }
+
+    public boolean getTaxi() {
+        return (modes & MODE_TAXI) != 0;
     }
 
     public void setBicycle(boolean bicycle) {
@@ -310,6 +318,15 @@ public class TraverseModeSet implements Cloneable, Serializable {
             modes |= MODE_AIRPLANE;
         } else {
             modes &= ~MODE_AIRPLANE;
+        }
+
+    }
+
+    public void setTaxi(boolean taxi) {
+        if (taxi) {
+            modes |= MODE_TAXI;
+        } else {
+            modes &= ~MODE_TAXI;
         }
 
     }
