@@ -381,8 +381,6 @@ public class RoutingRequest implements Cloneable, Serializable {
 
     public boolean walkingBike;
 
-    public double heuristicWeight = 1.0; // FIXME what is this for?
-
     public boolean softWalkLimiting = true;
     public boolean softPreTransitLimiting = true;
 
@@ -1033,22 +1031,16 @@ public class RoutingRequest implements Cloneable, Serializable {
      * @return The time it actually takes to board a vehicle. Could be significant eg. on airplanes and ferries
      */
     public int getBoardTime(TraverseMode transitMode) {
-        if (this.rctx.graph.boardTimes != null) {
-            Integer i = this.rctx.graph.boardTimes.get(transitMode);
-            return i == null ? 0 : i;
-        }
-        return 0;
+        Integer i = this.rctx.graph.boardTimes.get(transitMode);
+        return i == null ? 0 : i;
     }
 
     /**
      * @return The time it actually takes to alight a vehicle. Could be significant eg. on airplanes and ferries
      */
     public int getAlightTime(TraverseMode transitMode) {
-        if (this.rctx.graph.alightTimes != null) {
-            Integer i = this.rctx.graph.alightTimes.get(transitMode);
-            return i == null ? 0 : i;
-        }
-        return 0;
+        Integer i = this.rctx.graph.alightTimes.get(transitMode);
+        return i == null ? 0 : i;
     }
 
     private String getRouteOrAgencyStr(HashSet<String> strings) {
