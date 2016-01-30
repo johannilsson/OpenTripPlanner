@@ -537,7 +537,7 @@ public abstract class GraphPathToTripPlanConverter {
                     if (alertPatch.hasTrip()) {
                         // If the alert patch contains a trip and that trip match this leg only add the alert for
                         // this leg.
-                        if (alertPatch.getTrip().equals(new AgencyAndId(alertPatch.getFeedId(), leg.tripId))) {
+                        if (alertPatch.getTrip().equals(leg.tripId)) {
                             leg.addAlert(alertPatch.getAlert(), requestedLocale);
                         }
                     } else {
@@ -569,12 +569,12 @@ public abstract class GraphPathToTripPlanConverter {
             leg.headsign = states[states.length - 1].getBackDirection();
             leg.route = states[states.length - 1].getBackEdge().getName(requestedLocale);
             leg.routeColor = route.getColor();
-            leg.routeId = route.getId().getId();
+            leg.routeId = route.getId();
             leg.routeLongName = route.getLongName();
             leg.routeShortName = route.getShortName();
             leg.routeTextColor = route.getTextColor();
             leg.routeType = route.getType();
-            leg.tripId = trip.getId().getId();
+            leg.tripId = trip.getId();
             leg.tripShortName = trip.getTripShortName();
             leg.tripBlockId = trip.getBlockId();
 
