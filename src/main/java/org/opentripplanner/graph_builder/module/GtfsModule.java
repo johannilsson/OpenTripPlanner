@@ -39,6 +39,7 @@ import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.gtfs.BikeAccess;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.gtfs.GtfsLibrary;
+import org.opentripplanner.gtfs.ScopedAgencyId;
 import org.opentripplanner.routing.edgetype.factory.GTFSPatternHopFactory;
 import org.opentripplanner.routing.edgetype.factory.GtfsStopContext;
 import org.opentripplanner.routing.graph.Graph;
@@ -151,6 +152,8 @@ public class GtfsModule implements GraphBuilderModule {
     private void loadBundle(GtfsBundle gtfsBundle, Graph graph, GtfsMutableRelationalDao dao)
             throws IOException {
 
+        graph.addFeedId(gtfsBundle.getFeedId().getId());
+
         StoreImpl store = new StoreImpl(dao);
         store.open();
         LOG.info("reading {}", gtfsBundle.toString());
@@ -190,11 +193,13 @@ public class GtfsModule implements GraphBuilderModule {
                             nextAgencyId++;
                         }
                         LOG.warn("The agency ID '{}' was already seen, or I think it's bad. Replacing with '{}'.", agencyId, generatedAgencyId);
-                        reader.addAgencyIdMapping(agencyId, generatedAgencyId); // NULL key should work
-                        agency.setId(generatedAgencyId);
                         agencyId = generatedAgencyId;
                     }
-                    if (agencyId != null) agencyIdsSeen.add(gtfsFeedId.getId() + agencyId);
+                    agencyIdsSeen.add(gtfsFeedId.getId() + agencyId);
+
+                    String scopedAgencyId = ScopedAgencyId.create(gtfsFeedId.getId(), agencyId);
+                    reader.addAgencyIdMapping(agencyId, scopedAgencyId); // NULL key should work
+                    agency.setId(scopedAgencyId);
                 }
             }
         }

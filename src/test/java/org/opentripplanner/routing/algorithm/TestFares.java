@@ -40,6 +40,7 @@ public class TestFares extends TestCase {
 
         Graph gg = new Graph();
         GtfsContext context = GtfsLibrary.readGtfs(new File(ConstantsForTests.CALTRAIN_GTFS));
+        gg.addFeedId(context.getFeedId().getId());
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
         factory.run(gg);
         gg.putService(CalendarServiceData.class, GtfsLibrary.createCalendarServiceData(context.getDao()));

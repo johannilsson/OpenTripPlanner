@@ -126,7 +126,7 @@ public class Graph implements Serializable {
 
     private transient List<GraphBuilderAnnotation> graphBuilderAnnotations = new LinkedList<GraphBuilderAnnotation>(); // initialize for tests
 
-    private Map<String, Collection<Agency>> agenciesForFeedId = new HashMap<>();
+    private Collection<Agency> agencies = new HashSet<>();
 
     private Collection<String> feedIds = new HashSet<>();
 
@@ -888,19 +888,20 @@ public class Graph implements Serializable {
         return removed;
     }
 
+    public Collection<Agency> getAgencies() {
+        return agencies;
+    }
+
+    public void addAgency(Agency agency) {
+        this.agencies.add(agency);
+    }
+
+    public void addFeedId(String feedId) {
+        feedIds.add(feedId);
+    }
+
     public Collection<String> getFeedIds() {
         return feedIds;
-    }
-
-    public Collection<Agency> getAgencies(String feedId) {
-        return agenciesForFeedId.get(feedId);
-    }
-
-    public void addAgency(String feedId, Agency agency) {
-        Collection<Agency> agencies = agenciesForFeedId.getOrDefault(feedId, new HashSet<>());
-        agencies.add(agency);
-        this.agenciesForFeedId.put(feedId, agencies);
-        this.feedIds.add(feedId);
     }
 
     /**
@@ -911,10 +912,6 @@ public class Graph implements Serializable {
      */
     public TimeZone getTimeZone() {
         if (timeZone == null) {
-            Collection<Agency> agencies = null;
-            if (agenciesForFeedId.entrySet().size() > 0) {
-                agencies = agenciesForFeedId.entrySet().iterator().next().getValue();
-            }
             if (agencies == null || agencies.size() == 0) {
                 timeZone = TimeZone.getTimeZone("GMT");
                 LOG.warn("graph contains no agencies (yet); API request times will be interpreted as GMT.");

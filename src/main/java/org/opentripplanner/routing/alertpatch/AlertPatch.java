@@ -29,6 +29,7 @@ import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.Trip;
 import org.opentripplanner.api.adapters.AgencyAndIdAdapter;
+import org.opentripplanner.gtfs.ScopedAgencyId;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.edgetype.PreAlightEdge;
 import org.opentripplanner.routing.edgetype.PreBoardEdge;
@@ -107,9 +108,9 @@ public class AlertPatch implements Serializable {
 
     public void apply(Graph graph) {
         Agency agency = null;
-        if (feedId != null) {
-            Map<String, Agency> agencies = graph.index.agenciesForFeedId.get(feedId);
-            agency = this.agency != null ? agencies.get(this.agency) : null;
+        if (feedId != null && this.agency != null) {
+            String scopedAgencyId = ScopedAgencyId.create(feedId, this.agency);
+            agency = this.agency != null ? graph.index.agencyForId.get(scopedAgencyId) : null;
         }
         Route route = this.route != null ? graph.index.routeForId.get(this.route) : null;
         Stop stop = this.stop != null ? graph.index.stopForId.get(this.stop) : null;
@@ -169,8 +170,8 @@ public class AlertPatch implements Serializable {
     public void remove(Graph graph) {
         Agency agency = null;
         if (feedId != null) {
-            Map<String, Agency> agencies = graph.index.agenciesForFeedId.get(feedId);
-            agency = this.agency != null ? agencies.get(this.agency) : null;
+            String scopedAgencyId = ScopedAgencyId.create(feedId, this.agency);
+            agency = this.agency != null ? graph.index.agencyForId.get(scopedAgencyId) : null;
         }
         Route route = this.route != null ? graph.index.routeForId.get(this.route) : null;
         Stop stop = this.stop != null ? graph.index.stopForId.get(this.stop) : null;

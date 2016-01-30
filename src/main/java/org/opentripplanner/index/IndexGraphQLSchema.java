@@ -785,7 +785,7 @@ public class IndexGraphQLSchema {
                     return index.patternForId.get(id.id);
                 }
                 if (id.type.equals(agencyType.getName())) {
-                    return index.getAgencyWithoutFeedId(id.id);
+                    return index.agencyForId.get(id.id);
                 }
                 return null;
             }))
@@ -793,7 +793,7 @@ public class IndexGraphQLSchema {
                 .name("agencies")
                 .description("Get all agencies for the specified graph")
                 .type(new GraphQLList(agencyType))
-                .dataFetcher(environment -> index.getAllAgencies())
+                .dataFetcher(environment -> index.agencyForId)
                 .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("agency")
@@ -804,7 +804,7 @@ public class IndexGraphQLSchema {
                     .type(new GraphQLNonNull(Scalars.GraphQLString))
                     .build())
                 .dataFetcher(environment ->
-                    index.getAgencyWithoutFeedId(environment.getArgument("id")))
+                    index.agencyForId.get((String) environment.getArgument("id")))
                 .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("stops")

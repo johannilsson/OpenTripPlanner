@@ -49,7 +49,7 @@ public class RoutingContextTest {
         when(graph.getTimeZone()).thenReturn(TimeZone.getTimeZone("Europe/Budapest"));
         when(graph.getCalendarService()).thenReturn(calendarService);
         when(graph.getFeedIds()).thenReturn(Collections.singletonList("FEED"));
-        when(graph.getAgencies(feedId)).thenReturn(Collections.singletonList(agency));
+        when(graph.getAgencies()).thenReturn(Collections.singletonList(agency));
         when(calendarService.getTimeZoneForAgencyId(agencyId)).thenReturn(TimeZone.getTimeZone("Europe/Budapest"));
 
         when(routingRequest.getSecondsSinceEpoch())

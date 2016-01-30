@@ -68,6 +68,7 @@ public class ConstantsForTests {
         try {
             portlandContext = GtfsLibrary.readGtfs(new File(ConstantsForTests.PORTLAND_GTFS));
             portlandGraph = new Graph();
+            portlandGraph.addFeedId(portlandContext.getFeedId().getId());
             GTFSPatternHopFactory factory = new GTFSPatternHopFactory(portlandContext);
             factory.run(portlandGraph);
             TransferGraphLinker linker = new TransferGraphLinker(portlandGraph);
@@ -94,6 +95,7 @@ public class ConstantsForTests {
             return null;
         }
         Graph graph = new Graph();
+        graph.addFeedId(context.getFeedId().getId());
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
         factory.run(graph);
         graph.putService(CalendarServiceData.class, GtfsLibrary.createCalendarServiceData(context.getDao()));

@@ -65,6 +65,7 @@ public class TimetableTest {
 
         context = GtfsLibrary.readGtfs(new File(ConstantsForTests.FAKE_GTFS));
         graph = new Graph();
+        graph.addFeedId(context.getFeedId().getId());
 
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
         factory.run(graph);

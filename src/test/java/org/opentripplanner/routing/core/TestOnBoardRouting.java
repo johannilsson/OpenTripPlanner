@@ -55,6 +55,8 @@ public class TestOnBoardRouting extends TestCase {
     public void setUp() throws Exception {
         GtfsContext context = GtfsLibrary.readGtfs(new File(ConstantsForTests.FAKE_GTFS));
         graph = new Graph();
+        graph.addFeedId(context.getFeedId().getId());
+        graph.addFeedId(context.getFeedId().getId());
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
         factory.run(graph);
         graph.putService(CalendarServiceData.class,

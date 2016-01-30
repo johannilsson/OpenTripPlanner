@@ -8,6 +8,7 @@ import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.Trip;
 import org.opentripplanner.GtfsTest;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
+import org.opentripplanner.gtfs.ScopedAgencyId;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.vertextype.TransitStop;
@@ -45,10 +46,10 @@ public class GraphIndexTest extends GtfsTest {
         /* Agencies */
         String feedId = graph.getFeedIds().iterator().next();
         Agency agency;
-        agency = graph.index.agenciesForFeedId.get(feedId).get("azerty");
+        agency = graph.index.agencyForId.get(ScopedAgencyId.create(feedId, "azerty"));
         assertNull(agency);
-        agency = graph.index.agenciesForFeedId.get(feedId).get("agency");
-        assertEquals(agency.getId(), "agency");
+        agency = graph.index.agencyForId.get(ScopedAgencyId.create(feedId, "agency"));
+        assertEquals(agency.getId(), ScopedAgencyId.create(feedId, "agency"));
         assertEquals(agency.getName(), "Fake Agency");
 
         /* Stops */
@@ -102,7 +103,7 @@ public class GraphIndexTest extends GtfsTest {
     public void testGraphQLSimple() {
         String query =
                 "query Agency{" +
-                "    agency(id: \"agency\"){" +
+                "    agency(id: \"FEED:agency\"){" +
                 "        name" +
                 "    }" +
                 "}";
@@ -110,14 +111,13 @@ public class GraphIndexTest extends GtfsTest {
         ExecutionResult result = graph.index.graphQL.execute(query);
         assertTrue(result.getErrors().isEmpty());
         assertEquals("Fake Agency", ((Map) result.getData().get("agency")).get("name"));
-
     }
 
     public void testGraphQLNested() {
         String query =
                 "query Agency{\n" +
                         "    viewer {" +
-                        "    agency(id: \"agency\"){\n" +
+                        "    agency(id: \"FEED:agency\"){\n" +
                         "        name\n" +
                         "        routes{\n" +
                         "            shortName" +

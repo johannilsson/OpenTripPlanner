@@ -50,14 +50,57 @@ public class AlertPatchTest extends TestCase {
     public void setUp() throws Exception {
         aStar = new AStar();
         GtfsContext context = GtfsLibrary.readGtfs(new File(ConstantsForTests.FAKE_GTFS));
+        feedId = context.getFeedId().getId();
         options = new RoutingRequest();
         graph = new Graph();
+        graph.addFeedId(feedId);
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
         factory.run(graph);
         graph.putService(CalendarServiceData.class, GtfsLibrary.createCalendarServiceData(context.getDao()));
         graph.index(new DefaultStreetVertexIndexFactory());
 
-        feedId = context.getFeedId().getId();
+    }
+
+    public void testAgencyAlertPatch() {
+        AlertPatch snp1 = new AlertPatch();
+        snp1.setFeedId(feedId);
+        snp1.setTimePeriods(Collections.singletonList(new TimePeriod(
+                0, 1000L * 60 * 60 * 24 * 365 * 40))); // until ~1/1/2011
+        Alert note1 = Alert.createSimpleAlerts("The first note");
+        snp1.setAlert(note1);
+        snp1.setId("id1");
+        snp1.setAgencyId("agency");
+        snp1.apply(graph);
+
+        Vertex stop_a = graph.getVertex(feedId + ":A");
+        Vertex stop_e = graph.getVertex(feedId + ":E_arrive");
+
+        ShortestPathTree spt;
+        GraphPath optimizedPath, unoptimizedPath;
+
+        options.dateTime = TestUtils.dateInSeconds("America/New_York", 2009, 8, 7, 0, 0, 0);
+        options.setRoutingContext(graph, stop_a, stop_e);
+        spt = aStar.getShortestPathTree(options);
+
+        optimizedPath = spt.getPath(stop_e, true);
+        unoptimizedPath = spt.getPath(stop_e, false);
+        assertNotNull(optimizedPath);
+        HashSet<Alert> expectedAlerts = new HashSet<Alert>();
+        expectedAlerts.add(note1);
+
+        Edge optimizedEdge = optimizedPath.states.get(1).getBackEdge();
+        HashSet<Alert> optimizedAlerts = new HashSet<Alert>();
+        for (AlertPatch alertPatch : graph.getAlertPatches(optimizedEdge)) {
+            optimizedAlerts.add(alertPatch.getAlert());
+        }
+        assertEquals(expectedAlerts, optimizedAlerts);
+
+        Edge unoptimizedEdge = unoptimizedPath.states.get(1).getBackEdge();
+        HashSet<Alert> unoptimizedAlerts = new HashSet<Alert>();
+        for (AlertPatch alertPatch : graph.getAlertPatches(unoptimizedEdge)) {
+            unoptimizedAlerts.add(alertPatch.getAlert());
+        }
+        assertEquals(expectedAlerts, unoptimizedAlerts);
     }
 
     public void testStopAlertPatch() {

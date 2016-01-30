@@ -42,6 +42,7 @@ public class TestGraphPath extends TestCase {
     public void setUp() throws Exception {
         GtfsContext context = GtfsLibrary.readGtfs(new File(ConstantsForTests.FAKE_GTFS));
         graph = new Graph();
+        graph.addFeedId(context.getFeedId().getId());
         GTFSPatternHopFactory hl = new GTFSPatternHopFactory(context);
         hl.run(graph);
         graph.putService(CalendarServiceData.class, GtfsLibrary.createCalendarServiceData(context.getDao()));

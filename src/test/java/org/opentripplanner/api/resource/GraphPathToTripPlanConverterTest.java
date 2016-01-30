@@ -696,8 +696,8 @@ public class GraphPathToTripPlanConverterTest {
 
         graph.putService(CalendarServiceData.class, calendarServiceData);
         graph.putService(FareService.class, fareServiceStub);
-        graph.addAgency(feedId, trainAgency);
-        graph.addAgency(feedId, ferryAgency);
+        graph.addAgency(trainAgency);
+        graph.addAgency(ferryAgency);
         graph.timetableSnapshotSource = (timetableSnapshotSource);
         graph.addAlertPatch(e29, alertPatch);
 

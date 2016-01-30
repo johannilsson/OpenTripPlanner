@@ -912,7 +912,7 @@ public class GTFSPatternHopFactory {
     
     private void loadAgencies(Graph graph) {
         for (Agency agency : _dao.getAllAgencies()) {
-            graph.addAgency(_feedId.getId(), agency);
+            graph.addAgency(agency);
         }
     }
 
