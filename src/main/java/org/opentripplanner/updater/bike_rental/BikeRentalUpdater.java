@@ -112,6 +112,8 @@ public class BikeRentalUpdater extends PollingGraphUpdater {
                 source = new GenericKmlBikeRentalDataSource();
             } else if (sourceType.equals("sf-bay-area")) {
                 source = new SanFranciscoBayAreaBikeRentalDataSource(networkName);
+            } else if (sourceType.equals("cchannel")) {
+                source = new CChannelBikeRentalDataSource();
             }
         }
 
