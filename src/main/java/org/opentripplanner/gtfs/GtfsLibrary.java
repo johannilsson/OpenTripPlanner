@@ -103,7 +103,7 @@ public class GtfsLibrary {
         }else if (routeType >= 200 && routeType < 300){ //Coach Service
             return TraverseMode.BUS;
         }else if (routeType >= 300 && routeType < 500){ //Suburban Railway Service and Urban Railway service
-            if (routeType >= 401 && routeType <= 403) {
+            if (routeType >= 401 && routeType <= 402) {
                 return TraverseMode.SUBWAY;
             }
             return TraverseMode.RAIL;
