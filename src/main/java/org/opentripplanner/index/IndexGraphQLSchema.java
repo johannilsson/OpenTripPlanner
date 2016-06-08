@@ -1016,6 +1016,62 @@ public class IndexGraphQLSchema {
                 })
                 .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("findTrip")
+                .type(tripType)
+//                        .argument(GraphQLArgument.newArgument()
+//                                .name("route")
+//                                .type(Scalars.GraphQLString)
+//                                .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("direction")
+                        .type(Scalars.GraphQLInt)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("date")
+                        .type(Scalars.GraphQLString)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("time")
+                        .type(Scalars.GraphQLInt)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("isDeparture")
+                        .type(Scalars.GraphQLBoolean)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("agencyId")
+                        .type(Scalars.GraphQLString)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("routeTypes")
+                        .type(new GraphQLList(Scalars.GraphQLInt))
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("stop")
+                        .type(Scalars.GraphQLString)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("tripShortName")
+                        .type(Scalars.GraphQLString)
+                        .build())
+                .dataFetcher(environment -> {
+                    try {
+                            return fuzzyTripMatcher.getTrip(
+                                    index.getAgencyWithoutFeedId(environment.getArgument("agencyId")),
+                                    index.stopForId.get(GtfsLibrary.convertIdFromString(environment.getArgument("stop"))),
+                                    environment.getArgument("routeTypes"),
+                                    environment.getArgument("tripShortName"),
+                                    environment.getArgument("direction"),
+                                    environment.getArgument("time"),
+                                    ServiceDate.parseString(environment.getArgument("date")),
+                                    environment.getArgument("isDeparture")
+                        );
+                    } catch (ParseException e) {
+                        return null; // Invalid date format
+                    }
+                })
+                .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("patterns")
                 .description("Get all patterns for the specified graph")
                 .type(new GraphQLList(patternType))

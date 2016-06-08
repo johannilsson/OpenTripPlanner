@@ -1,9 +1,7 @@
 package org.opentripplanner.updater;
 
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
-import org.onebusaway.gtfs.model.AgencyAndId;
-import org.onebusaway.gtfs.model.Route;
-import org.onebusaway.gtfs.model.Trip;
+import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.serialization.mappings.StopTimeFieldMappingFactory;
 import org.opentripplanner.routing.edgetype.TripPattern;
@@ -12,6 +10,7 @@ import org.opentripplanner.routing.trippattern.TripTimes;
 
 import java.text.ParseException;
 import java.util.BitSet;
+import java.util.List;
 
 /**
  * This class is used for matching TripDescriptors without trip_ids to scheduled GTFS data and to
@@ -86,4 +85,44 @@ public class GtfsRealtimeFuzzyTripMatcher {
         }
         return null;
     }
+
+    boolean checkIfTimeMatch(TripTimes times, int stopIndex, int time, boolean isDeparture) {
+        if (isDeparture) {
+            return times.getScheduledDepartureTime(stopIndex) == time;
+        }
+        return times.getScheduledArrivalTime(stopIndex) == time;
+    }
+
+    public Trip getTrip(Agency agency, Stop stop, List<Integer> routeTypes, String tripShortName,
+                        int direction, int time, ServiceDate date, boolean isDeparture) {
+//        List<Integer> routeTypes = new ArrayList<>();
+//        routeTypes.add(routeType);
+        BitSet services = index.servicesRunning(date);
+        for (Route route : index.routesForStop(stop)) {
+//            if (route.getAgency().equals(agency) && routeTypes.contains(route.getType())) {
+            if (routeTypes.contains(route.getType())) {
+                for (TripPattern pattern : index.patternsForRoute.get(route)) {
+                    if (pattern.directionId != direction) continue;
+                    for (TripTimes times : pattern.scheduledTimetable.tripTimes) {
+                        for (int stopIndex = 0; stopIndex < times.getNumStops(); stopIndex++) {
+                            if (checkIfTimeMatch(times, stopIndex, time, isDeparture) &&
+                                    services.get(times.serviceCode)) {
+                                Stop compareStop = pattern.getStop(stopIndex);
+                                if (compareStop.getId().equals(stop.getId())) {
+                                    Trip trip = times.trip;
+                                    if (trip.getTripShortName() == null) {
+                                        return trip;
+                                    } else if (trip.getTripShortName().equals(tripShortName)) {
+                                        return trip;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 }
