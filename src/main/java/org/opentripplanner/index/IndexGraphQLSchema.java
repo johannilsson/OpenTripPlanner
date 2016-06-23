@@ -1052,6 +1052,12 @@ public class IndexGraphQLSchema {
                         .build())
                 .argument(GraphQLArgument.newArgument()
                         .name("tripShortName")
+                        .defaultValue(null)
+                        .type(Scalars.GraphQLString)
+                        .build())
+                .argument(GraphQLArgument.newArgument()
+                        .name("routeShortName")
+                        .defaultValue(null)
                         .type(Scalars.GraphQLString)
                         .build())
                 .dataFetcher(environment -> {
@@ -1061,6 +1067,7 @@ public class IndexGraphQLSchema {
                                     index.stopForId.get(GtfsLibrary.convertIdFromString(environment.getArgument("stop"))),
                                     environment.getArgument("routeTypes"),
                                     environment.getArgument("tripShortName"),
+                                    environment.getArgument("routeShortName"),
                                     environment.getArgument("direction"),
                                     environment.getArgument("time"),
                                     ServiceDate.parseString(environment.getArgument("date")),

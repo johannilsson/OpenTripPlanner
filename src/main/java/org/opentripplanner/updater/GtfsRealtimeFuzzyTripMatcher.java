@@ -93,33 +93,44 @@ public class GtfsRealtimeFuzzyTripMatcher {
         return times.getScheduledArrivalTime(stopIndex) == time;
     }
 
-    public Trip getTrip(Agency agency, Stop stop, List<Integer> routeTypes, String tripShortName,
+    static boolean isBlank(String s) {
+        return s == null || "".equals(s);
+    }
+
+    public Trip getTrip(Agency agency, Stop stop, List<Integer> routeTypes,
+                        String tripShortName, String routeShortName,
                         int direction, int time, ServiceDate date, boolean isDeparture) {
-//        List<Integer> routeTypes = new ArrayList<>();
-//        routeTypes.add(routeType);
         BitSet services = index.servicesRunning(date);
         for (Route route : index.routesForStop(stop)) {
-//            if (route.getAgency().equals(agency) && routeTypes.contains(route.getType())) {
-            if (routeTypes.contains(route.getType())) {
-                for (TripPattern pattern : index.patternsForRoute.get(route)) {
-                    if (pattern.directionId != direction) continue;
-                    for (TripTimes times : pattern.scheduledTimetable.tripTimes) {
-                        for (int stopIndex = 0; stopIndex < times.getNumStops(); stopIndex++) {
-                            if (checkIfTimeMatch(times, stopIndex, time, isDeparture) &&
-                                    services.get(times.serviceCode)) {
-                                Stop compareStop = pattern.getStop(stopIndex);
-                                if (compareStop.getId().equals(stop.getId())) {
-                                    Trip trip = times.trip;
-                                    if (trip.getTripShortName() == null) {
-                                        return trip;
-                                    } else if (trip.getTripShortName().equals(tripShortName)) {
-                                        return trip;
-                                    }
+            if (!isBlank(routeShortName) && !isBlank(route.getShortName())) {
+                if (!route.getShortName().equals(routeShortName)) {
+                    continue;
+                }
+            }
+            if (!routeTypes.contains(route.getType())) {
+                continue;
+            }
+            for (TripPattern pattern : index.patternsForRoute.get(route)) {
+                if (pattern.directionId != direction) {
+                    continue;
+                }
+                for (TripTimes times : pattern.scheduledTimetable.tripTimes) {
+                    for (int stopIndex = 0; stopIndex < times.getNumStops(); stopIndex++) {
+                        if (checkIfTimeMatch(times, stopIndex, time, isDeparture) &&
+                                services.get(times.serviceCode)) {
+                            Stop compareStop = pattern.getStop(stopIndex);
+                            if (compareStop.getId().equals(stop.getId())) {
+                                Trip trip = times.trip;
+                                if (isBlank(tripShortName) || isBlank(trip.getTripShortName())) {
+                                    return trip;
+                                }
+                                if (trip.getTripShortName().equals(tripShortName)) {
+                                    return trip;
                                 }
                             }
                         }
                     }
-                }
+            }
             }
         }
         return null;
