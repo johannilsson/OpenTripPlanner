@@ -102,6 +102,10 @@ public class GtfsRealtimeFuzzyTripMatcher {
                         int direction, int time, ServiceDate date, boolean isDeparture) {
         BitSet services = index.servicesRunning(date);
         for (Route route : index.routesForStop(stop)) {
+            if (agency != null && !agency.equals(route.getAgency())) {
+                continue;
+            }
+
             if (!isBlank(routeShortName) && !isBlank(route.getShortName())) {
                 if (!route.getShortName().equals(routeShortName)) {
                     continue;
