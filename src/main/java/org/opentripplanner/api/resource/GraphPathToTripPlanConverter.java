@@ -676,7 +676,14 @@ public abstract class GraphPathToTripPlanConverter {
             if (endOfLeg) place.stopIndex++;
             if (tripTimes != null) {
                 place.stopSequence = tripTimes.getStopSequence(place.stopIndex);
+
+                if (!tripTimes.isScheduled()) {
+                    place.realTime = true;
+                    place.arrivalDelay = tripTimes.getArrivalDelay(place.stopIndex);
+                    place.departureDelay = tripTimes.getDepartureDelay(place.stopIndex);
+                }
             }
+
             place.vertexType = VertexType.TRANSIT;
         } else if(vertex instanceof BikeRentalStationVertex) {
             place.vertexType = VertexType.BIKESHARE;
