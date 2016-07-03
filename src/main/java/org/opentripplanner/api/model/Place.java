@@ -65,9 +65,23 @@ public class Place {
     public Calendar arrival = null;
 
     /**
+     * The arrival delay.
+     */
+    @XmlAttribute
+    @JsonSerialize
+    public int arrivalDelay;
+
+    /**
      * The time the rider will depart the place.
      */
     public Calendar departure = null;
+
+    /**
+     * The departure delay.
+     */
+    @XmlAttribute
+    @JsonSerialize
+    public int departureDelay;
 
     @XmlAttribute
     @JsonSerialize
@@ -98,6 +112,13 @@ public class Place {
     @XmlAttribute
     @JsonSerialize
     public VertexType vertexType;
+
+    /**
+     * Set to true if the times is in real-time.
+     */
+    @XmlAttribute
+    @JsonSerialize
+    public boolean realTime;
 
     /**
      * Returns the geometry in GeoJSON format
