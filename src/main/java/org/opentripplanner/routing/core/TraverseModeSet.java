@@ -55,12 +55,9 @@ public class TraverseModeSet implements Cloneable, Serializable {
 
     private static final int MODE_TAXI = 8192;
 
-    private static final int MODE_TRAINISH = MODE_TRAM | MODE_RAIL | MODE_SUBWAY | MODE_FUNICULAR | MODE_GONDOLA;
-
-    private static final int MODE_BUSISH = MODE_CABLE_CAR | MODE_BUS;
-
-    private static final int MODE_TRANSIT = MODE_TRAINISH | MODE_BUSISH | MODE_FERRY | MODE_AIRPLANE | MODE_TAXI;
-    
+    private static final int MODE_TRANSIT = MODE_TRAM | MODE_RAIL | MODE_SUBWAY | MODE_FUNICULAR
+            | MODE_GONDOLA | MODE_CABLE_CAR | MODE_BUS | MODE_FERRY | MODE_AIRPLANE | MODE_TAXI;
+ 
     private static final int MODE_ALL = MODE_TRANSIT | MODE_WALK | MODE_BICYCLE;
 
     private int modes = 0;
@@ -121,10 +118,6 @@ public class TraverseModeSet implements Cloneable, Serializable {
             return MODE_AIRPLANE;
         case TAXI:
             return MODE_TAXI;
-        case TRAINISH:
-            return MODE_TRAINISH;
-        case BUSISH:
-            return MODE_BUSISH;
         case TRANSIT:
             return MODE_TRANSIT;
         }
@@ -162,14 +155,6 @@ public class TraverseModeSet implements Cloneable, Serializable {
     
     public boolean getTram() {
         return (modes & MODE_TRAM) != 0;
-    }
-    
-    public boolean getTrainish() {
-        return (modes & MODE_TRAINISH) != 0;
-    }
-    
-    public boolean getBusish() {
-        return (modes & MODE_BUSISH) != 0;
     }
     
     public boolean getBus() {
@@ -239,14 +224,6 @@ public class TraverseModeSet implements Cloneable, Serializable {
             modes &= ~MODE_TRAM;
         }
     }
-
-    public void setTrainish(boolean trainish) {
-        if (trainish) {
-            modes |= MODE_TRAINISH;
-        } else {
-            modes &= ~MODE_TRAINISH;
-        }
-    }
     
     public void setBus(boolean bus) {
         if (bus) {
@@ -255,15 +232,7 @@ public class TraverseModeSet implements Cloneable, Serializable {
             modes &= ~MODE_BUS;
         }
     }
-
-    public void setBusish(boolean busish) {
-        if (busish) {
-            modes |= MODE_BUSISH;
-        } else {
-            modes &= ~MODE_BUSISH;
-        }
-    }
-    
+   
     public void setFerry(boolean ferry) {
         if (ferry) {
             modes |= MODE_FERRY;
@@ -350,11 +319,6 @@ public class TraverseModeSet implements Cloneable, Serializable {
         retval.modes = modes;
         retval.setTransit(false);
         return retval;
-    }
-
-    /** Returns true if any the trip may use some train-like (train, subway, tram) mode */
-    public boolean getTraininsh() {
-        return (modes & (MODE_TRAINISH)) != 0;
     }
 
     public List<TraverseMode> getModes() {

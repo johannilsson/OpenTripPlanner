@@ -121,6 +121,11 @@ public class Place {
     public boolean realTime;
 
     /**
+     * In case the vertex is of type Bike sharing station.
+     */
+    public String bikeShareId;
+
+    /**
      * Returns the geometry in GeoJSON format
      * @return
      */
